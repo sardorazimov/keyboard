@@ -1,23 +1,22 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { scores, users } from "@/lib/db/schema";
-import { desc, eq, and, SQL } from "drizzle-orm"; // 'and' ve 'SQL' ekledik
+import { desc, eq, and, SQL } from "drizzle-orm";
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const country = searchParams.get("country");
+  // Yeni: query'den mod tipini alıyoruz (typing veya game)
+  const type = searchParams.get("type") || "typing"; 
 
-  // 1. Filtreleri bir dizide toplayalım
   const filters: (SQL | undefined)[] = [
-    eq(scores.mode, "typing") // Varsayılan filtremiz
+    eq(scores.mode, type) // Artık sabit değil, gelen tipe göre filtreleniyor
   ];
 
-  // 2. Eğer country varsa filtreye ekleyelim
   if (country) {
     filters.push(eq(users.country, country));
   }
 
-  // 3. Sorguyu tek seferde inşa edelim
   const data = await db
     .select({
       username: users.username,
@@ -28,7 +27,7 @@ export async function GET(req: Request) {
     })
     .from(scores)
     .innerJoin(users, eq(users.id, scores.userId))
-    .where(and(...filters)) // Tüm filtreleri 'and' ile birleştiriyoruz
+    .where(and(...filters))
     .orderBy(desc(scores.wpm))
     .limit(10);
 

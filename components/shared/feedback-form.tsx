@@ -45,28 +45,28 @@ export default function FeedbackForm() {
     <>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Input name="name" placeholder="Adınız" required />
-          <Input name="email" type="email" placeholder="Email Adresiniz" required />
+          <Input name="name" placeholder="Your Name" required />
+          <Input name="email" type="email" placeholder="Your Email" required />
         </div>
-        <Textarea name="message" placeholder="Mesajınız..." required className="min-h-[120px]" />
+        <Textarea name="message" placeholder="Your Message..." required className="min-h-[120px]" />
         <Button type="submit" disabled={loading} className="w-full">
-          {loading ? "Gönderiliyor..." : "Geri Bildirim Gönder"}
+          {loading ? "Sending..." : "Send Feedback"}
         </Button>
       </form>
 
-      {/* Başarı Modalı */}
+      {/* Success Modal */}
       <Dialog open={showModal} onOpenChange={setShowModal}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader className="flex flex-col items-center justify-center text-center space-y-3">
             <CheckCircle2 className="w-16 h-16 text-green-500 animate-in zoom-in duration-300" />
-            <DialogTitle className="text-2xl font-bold">Mesaj İletildi!</DialogTitle>
+            <DialogTitle className="text-2xl font-bold">Message Sent</DialogTitle>
             <DialogDescription className="text-base text-center">
-              Geri bildiriminiz başarıyla alındı. En kısa sürede dönüş yapacağız.
+             Your feedback has been successfully received. We will get back to you as soon as possible.
             </DialogDescription>
           </DialogHeader>
           
           <div className="bg-secondary/50 p-4 rounded-lg flex flex-col items-center justify-center border border-border">
-            <span className="text-xs uppercase tracking-widest text-muted-foreground">Bilet Numarası</span>
+            <span className="text-xs uppercase tracking-widest text-muted-foreground">No 1431</span>
             <span className="text-2xl font-mono font-black text-primary">#{ticketNo}</span>
           </div>
 

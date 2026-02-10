@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/immutability */
 /* eslint-disable react-hooks/set-state-in-effect */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
@@ -16,6 +17,7 @@ import {
   Target, 
   ChevronRight 
 } from "lucide-react";
+import { url } from "inspector/promises";
 
 // ===== CONFIG =====
 const TEST_TIME = 60;
@@ -98,11 +100,41 @@ export default function DashboardPage() {
   window.addEventListener("keydown", handleKey);
   return () => window.removeEventListener("keydown", handleKey);
 }, [index, currentChar, finished, started]);
+// DashboardPage içindeki useEffect'lerin yanına ekle
+useEffect(() => {
+  if (finished) {
+    saveScoreToDB();
+  }
+}, [finished]);
 
+async function saveScoreToDB() {
+  const username = localStorage.getItem("username");
+  const country = localStorage.getItem("country");
+
+  if (!username) return; // Kullanıcı adı yoksa kaydetme
+
+  try {
+    await fetch("/api/leaderboard", { // Sendeki API yolu farklıysa burayı düzelt (örn: /api/leaderboard)
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        username,
+        country,
+        wpm: wpm,
+        accuracy: accuracy,
+        mode: mode, // Easy, Medium vb.
+      }),
+    });
+    console.log("Skor başarıyla kaydedildi!");
+  } catch (error) {
+    console.error("Skor kaydedilirken hata oluştu:", error);
+  }
+}
   // Hesaplamalar
   const elapsed = TEST_TIME - time || 1;
   const wpm = Math.round((correct / 5) / (elapsed / 60));
   const accuracy = Math.round((correct / (correct + wrong || 1)) * 100);
+// Leaderboard sayfasındaki fetch kısmını böyle yapabilirsin:
 
   const reset = () => {
     setTime(TEST_TIME); setStarted(false); setFinished(false);
@@ -188,7 +220,7 @@ export default function DashboardPage() {
             </div>
 
             <div className="space-y-2">
-              <h2 className="text-4xl font-black tracking-tight uppercase italic text-primary">Test Bitti!</h2>
+              <h2 className="text-4xl font-black tracking-tight uppercase italic text-primary">Test Finished!</h2>
               <div className="inline-block px-4 py-1.5 bg-secondary rounded-full text-[10px] font-black tracking-[0.2em] text-muted-foreground">
                 TICKET NO: #0023-{mode.toUpperCase()}
               </div>
@@ -196,11 +228,11 @@ export default function DashboardPage() {
 
             <div className="grid grid-cols-2 gap-4">
                <div className="bg-muted/40 p-6 rounded-[2rem] border border-border">
-                  <p className="text-[10px] font-bold text-muted-foreground uppercase mb-1">Hız</p>
+                  <p className="text-[10px] font-bold text-muted-foreground uppercase mb-1">Speed</p>
                   <p className="text-3xl font-black">{wpm} <span className="text-xs">WPM</span></p>
                </div>
                <div className="bg-muted/40 p-6 rounded-[2rem] border border-border">
-                  <p className="text-[10px] font-bold text-muted-foreground uppercase mb-1">Doğruluk</p>
+                  <p className="text-[10px] font-bold text-muted-foreground uppercase mb-1">Accuracy</p>
                   <p className="text-3xl font-black">%{accuracy}</p>
                </div>
             </div>
@@ -210,13 +242,13 @@ export default function DashboardPage() {
                 onClick={reset}
                 className="w-full bg-primary text-primary-foreground font-black py-5 rounded-2xl hover:opacity-90 transition-all active:scale-95"
               >
-                YENİDEN BAŞLAT
+                Restart 
               </button>
               <button 
                 onClick={() => router.push("/dashboard/leaderboard")}
                 className="w-full bg-secondary text-foreground font-bold py-5 rounded-2xl hover:bg-secondary/80 transition-all flex items-center justify-center gap-2"
               >
-                SIRALAMAYI GÖR <ChevronRight className="w-4 h-4" />
+                VIEW LEADERBOARD <ChevronRight className="w-4 h-4" />
               </button>
             </div>
           </div>

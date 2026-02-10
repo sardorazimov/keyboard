@@ -9,13 +9,11 @@ export async function POST(req: Request) {
     const body = await req.json();
     const { username, score, difficulty } = body;
 
-    // 1. Basit doğrulama
     if (!username || score === undefined) {
       return NextResponse.json({ ok: false, message: "Eksik veri" }, { status: 400 });
     }
 
-    // 2. Önce bu username'e sahip kullanıcıyı bulup ID'sini alıyoruz
-    // Çünkü 'scores' tablosu username değil, UUID olan userId bekliyor.
+    // 1. Kullanıcıyı bulup UUID'sini alıyoruz
     const userResult = await db
       .select()
       .from(users)
@@ -28,12 +26,15 @@ export async function POST(req: Request) {
       return NextResponse.json({ ok: false, message: "Kullanıcı bulunamadı" }, { status: 404 });
     }
 
-    // 3. Veritabanına kayıt
-    // Şemanda 'difficulty' kolonu yok, o yüzden bunu 'mode' kolonuna kaydediyoruz.
+    // 2. Scores tablosuna kayıt
+    // Şemandaki tüm notNull() alanları doldurduğumuzdan emin oluyoruz
     await db.insert(scores).values({
-      userId: user.id,      // UUID (DB'nin istediği asıl şey bu)
-      score: score,         // Integer
-      mode: difficulty,     // easy, medium, hard, ultra
+      userId: user.id,      // user_id kolonuna gider
+      score: score,         // integer
+      wpm: score,           // Leaderboard sıralaması için (skoru WPM gibi kullanıyoruz)
+      mode: "game",         // Leaderboard'un filtreleyebilmesi için sabit "game"
+      difficulty: difficulty, // easy, medium vb.
+      accuracy: 100,        // Varsayılan
       createdAt: new Date(),
     });
 

@@ -37,7 +37,7 @@ const navigationItems = [
     icon: KeyboardIcon,
   },
   {
-    title: 'game',
+    title: 'Game',
     url: '/dashboard/game',
     icon:  Gamepad,
   },
@@ -71,7 +71,9 @@ const  SidebarGame = () => {
           <SidebarHeader>
             <div className="flex items-center gap-2 px-2 py-1.5">
               <div className="flex size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-                <LayoutDashboardIcon className="size-4" />
+                <Link href="/">
+                <img src="/logo1.png" alt="KeyType Logo" className="w-20  rounded-full" />
+                </Link>
               </div>
               <div className="flex flex-col gap-0.5">
                 
@@ -133,31 +135,31 @@ const  SidebarGame = () => {
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <SidebarMenuButton size="lg" className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground">
-                      <Avatar className="size-8 rounded-lg">
+                      {/* <Avatar className="size-8 rounded-lg">
                         <AvatarImage src="/placeholder.svg" alt="User" />
                         <AvatarFallback className="rounded-lg">SA</AvatarFallback>
-                      </Avatar>
-                      <div className="grid flex-1 text-left text-sm leading-tight">
+                      </Avatar> */}
+                      {/* <div className="grid flex-1 text-left text-sm leading-tight">
                         <span className="truncate font-semibold">Sardor Azimov</span>
                         <span className="truncate text-xs text-muted-foreground">
-                          alex@example.com
+                          
                         </span>
-                      </div>
+                      </div> */}
                     </SidebarMenuButton>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent
+                  {/* <DropdownMenuContent
                     side="top"
                     align="end"
                     className="w-56"
                   >
-                    <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                   <DropdownMenuLabel>My Account</DropdownMenuLabel>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem>Profile</DropdownMenuItem>
                     <DropdownMenuItem>Billing</DropdownMenuItem>
                     <DropdownMenuItem>Team</DropdownMenuItem>
-                    <DropdownMenuSeparator />
+                    <DropdownMenuSeparator /> 
                     <DropdownMenuItem>Log out</DropdownMenuItem>
-                  </DropdownMenuContent>
+                  </DropdownMenuContent> */}
                 </DropdownMenu>
               </SidebarMenuItem>
             </SidebarMenu>
