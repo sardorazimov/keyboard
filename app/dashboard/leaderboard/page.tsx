@@ -1,9 +1,10 @@
-/* eslint-disable react-hooks/set-state-in-effect */
+/* eslint-disable react-hooks/exhaustive-deps */
 "use client";
 
 import { useEffect, useState } from "react";
 import { Button } from "../../../components/ui/button";
-import { Loader } from "lucide-react";
+import { Loader, Trophy, Globe, MapPin, ArrowUpCircle, ArrowDownCircle } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 type Row = {
   username: string;
@@ -16,170 +17,164 @@ export default function LeaderboardPage() {
   const [rows, setRows] = useState<Row[]>([]);
   const [loading, setLoading] = useState(true);
   const [mode, setMode] = useState<"global" | "local">("global");
-
-  // rank animasyonu için
   const [rankChange, setRankChange] = useState<number | null>(null);
 
+  // Client-side güvenli localStorage erişimi
+  const getStorageItem = (key: string) => {
+    if (typeof window !== "undefined") return localStorage.getItem(key);
+    return null;
+  };
+
   useEffect(() => {
-    setLoading(true);
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        const country = mode === "local" ? getStorageItem("country") : null;
+        const url = mode === "local" && country 
+          ? `/api/leaderboard?country=${country}` 
+          : `/api/leaderboard`;
 
-    const country =
-      mode === "local"
-        ? localStorage.getItem("country")
-        : null;
-
-    const url =
-      mode === "local" && country
-        ? `/api/leaderboard?country=${country}`
-        : `/api/leaderboard`;
-
-    fetch(url)
-      .then((r) => r.json())
-      .then((data: Row[]) => {
+        const res = await fetch(url);
+        const data: Row[] = await res.json();
         setRows(data);
 
-        // 🔹 RANK HESABI (BEN NEREDEYİM?)
-        const username = localStorage.getItem("username");
-        if (!username) return;
+        // Rank Hesaplama Logic
+        const myName = getStorageItem("username");
+        if (myName) {
+          const myIndex = data.findIndex((r) => r.username === myName);
+          if (myIndex !== -1) {
+            const currentRank = myIndex + 1;
+            const prevRank = Number(getStorageItem("prevRank"));
 
-        const myIndex = data.findIndex(
-          (r) => r.username === username
-        );
-
-        if (myIndex !== -1) {
-          const currentRank = myIndex + 1;
-          const prevRank = Number(
-            localStorage.getItem("prevRank")
-          );
-
-          if (prevRank && prevRank !== currentRank) {
-            const diff = prevRank - currentRank;
-            setRankChange(diff);
-
-            // 2.5 sn sonra kaybolsun
-            setTimeout(() => {
-              setRankChange(null);
-            }, 2500);
+            if (prevRank && prevRank !== currentRank) {
+              setRankChange(prevRank - currentRank);
+              setTimeout(() => setRankChange(null), 3000);
+            }
+            localStorage.setItem("prevRank", String(currentRank));
           }
-
-          localStorage.setItem(
-            "prevRank",
-            String(currentRank)
-          );
         }
-      })
-      .finally(() => setLoading(false));
+      } catch (error) {
+        console.error("Leaderboard yüklenemedi", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
   }, [mode]);
 
   return (
-    <div className="space-y-6 relative px-6 mt-10">
-      <h1 className="text-2xl font-bold">🏆 Leaderboard</h1>
+    <div className="space-y-8 relative px-6 mt-12 max-w-5xl mx-auto pb-20">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <h1 className="text-3xl font-black tracking-tighter flex items-center gap-3">
+          <Trophy className="text-yellow-500 w-8 h-8" /> 
+          LEADERBOARD
+        </h1>
 
-      {/* MODE SWITCH */}
-      <div className="flex gap-4">
-        <Button
-          onClick={() => setMode("global")}
-          className={`px-4 py-2 rounded ${
-            mode === "global"
-              ? ""
-              : "bg-default text-center text-sm leading-none font-medium tracking-tight whitespace-pre-wrap lg:text-lg  dark:text-white/80 text-black border border-white/10 hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=open]:bg-primary border-primary"
-          }`}
-        >
-          🌍 Global
-        </Button>
-
-        <Button
-          onClick={() => setMode("local")}
-          className={`px-4 py-2 rounded ${
-            mode === "local"
-              ? ""
-              : "bg-default text-center text-sm leading-none font-medium tracking-tight whitespace-pre-wrap lg:text-lg  dark:text-white/80 text-black border border-white/10 hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=open]:bg-primary border-primary"
-          }`}
-        >
-          📍 Local
-        </Button>
+        {/* MODE SWITCH - Temizlendi */}
+        <div className="flex bg-muted/50 p-1 rounded-xl border border-border">
+          <Button
+            variant={mode === "global" ? "default" : "ghost"}
+            onClick={() => setMode("global")}
+            className="rounded-lg px-6 font-bold gap-2"
+          >
+            <Globe className="w-4 h-4" /> Global
+          </Button>
+          <Button
+            variant={mode === "local" ? "default" : "ghost"}
+            onClick={() => setMode("local")}
+            className="rounded-lg px-6 font-bold gap-2"
+          >
+            <MapPin className="w-4 h-4" /> Local
+          </Button>
+        </div>
       </div>
 
-      {/* RANK CHANGE BADGE */}
+      {/* RANK NOTIFICATION */}
       {rankChange !== null && (
-        <div
-          className={`
-            fixed top-6 right-6 z-50
-            px-4 py-2 rounded-lg text-lg font-bold
-            transition-all duration-500
-            ${
-              rankChange > 0
-                ? "bg-green-600 text-white animate-bounce"
-                : "bg-red-600 text-white animate-pulse"
-            }
-          `}
-        >
-          {rankChange > 0 ? "⬆️ +" : "⬇️ "}
-          {Math.abs(rankChange)} rank
+        <div className={cn(
+          "fixed top-24 right-10 z-50 flex items-center gap-3 px-6 py-4 rounded-2xl shadow-2xl animate-in slide-in-from-right duration-500",
+          rankChange > 0 ? "bg-emerald-600 text-white" : "bg-red-600 text-white"
+        )}>
+          {rankChange > 0 ? <ArrowUpCircle /> : <ArrowDownCircle />}
+          <span className="font-black tracking-tight">
+            {rankChange > 0 ? `RANK YÜKSELDİ! +${rankChange}` : `RANK DÜŞTÜ! ${rankChange}`}
+          </span>
         </div>
       )}
 
-      {/* TABLE */}
-      {loading ? (
-  
-        <p className="text-xl ">
-          <Loader className="animate-spin mr-2" />
-        </p>
-      ) : (
-        <div className="bg-primary-foreground rounded-lg overflow-hidden">
-          <table className="w-full ">
-            <thead className="text-left">
-              <tr>
-                <th className="p-3">#</th>
-                <th className="p-3">User</th>
-                <th className="p-3">Country</th>
-                <th className="p-3">WPM</th>
-                <th className="p-3">Accuracy</th>
-              </tr>
-            </thead>
-
-            <tbody>
-              {rows.map((r, i) => {
-                const isMe =
-                  r.username ===
-                  localStorage.getItem("username");
-
-                return (
-                  <tr
-                    key={i}
-                    className={`
-                      border-t border-neutral-700
-                      ${isMe ? "bg-primary-foreground cursor-pointer hover:bg-primary/10" : ""}
-                    `}
-                  >
-                    <td className="p-3">{i + 1}</td>
-                    <td className="p-3 font-semibold">
-                      {r.username}
-                      {isMe && " 👈 you"}
-                    </td>
-                    <td className="p-3">{r.country}</td>
-                    <td className="p-3">{r.wpm}</td>
-                    <td className="p-3">
-                      {r.accuracy}%
-                    </td>
-                  </tr>
-                );
-              })}
-
-              {rows.length === 0 && (
-                <tr>
-                  <td
-                    colSpan={5}
-                    className="p-4 text-center text-neutral-400"
-                  >
-                    No data yet
-                  </td>
+      {/* MODERN TABLE */}
+      <div className="bg-card rounded-[2rem] border border-border overflow-hidden shadow-xl">
+        {loading ? (
+          <div className="flex flex-col items-center justify-center py-20 gap-4">
+            <Loader className="animate-spin w-10 h-10 text-primary" />
+            <p className="text-muted-foreground font-medium animate-pulse">Skorlar yükleniyor...</p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse">
+              <thead>
+                <tr className="bg-muted/30 text-muted-foreground text-[11px] uppercase tracking-[0.2em] font-black">
+                  <th className="p-5 text-center w-16">#</th>
+                  <th className="p-5 text-left">Oyuncu</th>
+                  <th className="p-5 text-left">Ülke</th>
+                  <th className="p-5 text-center">WPM</th>
+                  <th className="p-5 text-center text-primary">Doğruluk</th>
                 </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      )}
+              </thead>
+              <tbody className="divide-y divide-border/50">
+                {rows.map((r, i) => {
+                  const isMe = r.username === getStorageItem("username");
+                  return (
+                    <tr
+                      key={i}
+                      className={cn(
+                        "transition-colors group",
+                        isMe ? "bg-primary/5 hover:bg-primary/10" : "hover:bg-muted/20"
+                      )}
+                    >
+                      <td className="p-5 text-center">
+                        <span className={cn(
+                          "font-mono font-bold",
+                          i === 0 ? "text-yellow-500 text-xl" : 
+                          i === 1 ? "text-slate-400 text-lg" :
+                          i === 2 ? "text-amber-700 text-lg" : "text-muted-foreground"
+                        )}>
+                          {i + 1}
+                        </span>
+                      </td>
+                      <td className="p-5">
+                        <div className="flex items-center gap-2">
+                          <span className={cn("font-bold tracking-tight", isMe && "text-primary italic")}>
+                            {r.username}
+                          </span>
+                          {isMe && (
+                            <span className="bg-primary/20 text-primary text-[9px] px-2 py-0.5 rounded-full font-black uppercase">SENSİN</span>
+                          )}
+                        </div>
+                      </td>
+                      <td className="p-5 text-muted-foreground font-medium uppercase tracking-tighter">
+                        {r.country || "—"}
+                      </td>
+                      <td className="p-5 text-center font-black text-xl tracking-tighter">
+                        {r.wpm}
+                      </td>
+                      <td className="p-5 text-center font-mono font-bold text-primary/80">
+                        %{r.accuracy}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+            {rows.length === 0 && (
+              <div className="p-20 text-center text-muted-foreground font-medium italic">
+                Bu kategoride henüz skor kaydedilmemiş.
+              </div>
+            )}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

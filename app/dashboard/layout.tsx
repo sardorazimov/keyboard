@@ -1,3 +1,4 @@
+import { Footer } from "../../components/shared/footer";
 import Header from "../../components/shared/header";
 import SidebarGame from "../../components/shared/sidebar";
 import Sidebar from "../../components/shared/sidebar";
@@ -15,6 +16,7 @@ export default function DashboardLayout({
         <main className="flex-1  mt-10  ">
           <Header />
           {children}
+          <Footer />
         </main>
       </div>
     </div>

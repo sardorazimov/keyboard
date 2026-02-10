@@ -5,6 +5,8 @@ import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { countries } from "../../lib/db/countres";
 import { ModeToggle } from "../provider/modde-toggle";
+import Link from "next/link";
+import { Button } from "../ui/button";
 
 
 export default function Header() {
@@ -48,7 +50,11 @@ export default function Header() {
         }`}>
       
       {/* Sayfa İsmi */}
-      <div className="text-xl font-black tracking-tighter text-black  dark:text-slate-200 uppercase">
+      {/* <div>
+        <img src="logo1.png" alt="" className="w-20" />
+      </div> */}
+      <div className="text-xl flex h-full items-center gap-1  font-black tracking-tighter text-black  dark:text-slate-200 uppercase">
+          <Link href={"/"}><img src="logo1.png" alt="" className="w-20" /></Link> 
         {pathname.split("/").filter(Boolean).pop() || "Overview"}
       </div>
 
@@ -65,10 +71,9 @@ export default function Header() {
               </p>
             </div>
             
-            <div className="w-10 h-10 flex items-center justify-center bg-slate-100 dark:bg-slate-900 
-                          rounded-xl border border-slate-200 dark:border-slate-800 text-xl shadow-sm">
+            <Button className="w-10 h-10 border flex items-center justify-center bg-primary-accent rounded-xl bordertext-xl shadow-sm">
               {userFlag}
-            </div><ModeToggle />
+            </Button><ModeToggle />
           </div>
         ) : (
           <div className="text-xs text-slate-400 italic">Guest Mode</div>

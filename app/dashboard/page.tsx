@@ -1,20 +1,27 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable react-hooks/set-state-in-effect */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import Keyboard from "@/components/shared/keyboard"; // Daha önce yaptığımız klavyeyi buraya import et
+import { useRouter } from "next/navigation";
+import { useTheme } from "next-themes";
 import { DotPattern } from "../../components/ui/dot-patern";
 import { cn } from "../../lib/utils";
 import { ShineBorder } from "../../components/ui/shine-border";
-import { useTheme } from "next-themes";
-import { Card } from "../../components/ui/card";
+import { 
+  CheckCircle2, 
+  RefreshCcw, 
+  Timer, 
+  Zap, 
+  Target, 
+  ChevronRight 
+} from "lucide-react";
 
 // ===== CONFIG =====
 const TEST_TIME = 60;
 const TEXT = "programming teaches patience precision and problem solving at the same time typing fast requires focus rhythm and accuracy";
 
-// ===== SOUND (Aynı Kalıyor) =====
+// ===== SOUNDS =====
 let clickAudio: HTMLAudioElement | null = null;
 let errorAudio: HTMLAudioElement | null = null;
 
@@ -29,6 +36,8 @@ function playWrong() {
 }
 
 export default function DashboardPage() {
+  // Oyun State'leri
+  const [mode, setMode] = useState<"easy" | "medium" | "hard" | "ultra">("medium");
   const [time, setTime] = useState(TEST_TIME);
   const [started, setStarted] = useState(false);
   const [finished, setFinished] = useState(false);
@@ -37,10 +46,11 @@ export default function DashboardPage() {
   const [correct, setCorrect] = useState(0);
   const [wrong, setWrong] = useState(0);
 
+  const router = useRouter();
+  const { theme } = useTheme();
   const currentChar = TEXT[index];
-  const savedRef = useRef(false);
 
-  // Timer & Key Handler Logic (Kodun burası aynı kalıyor, sadece UI'ı değiştiriyoruz)
+  // Timer Döngüsü
   useEffect(() => {
     if (!started || finished) return;
     if (time === 0) { setFinished(true); return; }
@@ -48,44 +58,28 @@ export default function DashboardPage() {
     return () => clearInterval(id);
   }, [started, time, finished]);
 
+  // Klavye Dinleyicisi
   useEffect(() => {
-   function handleKey(e: KeyboardEvent) {
-  // ⛔ tarayıcı davranışlarını kapat
-  if (e.key === "Tab") {
-    e.preventDefault();
-    return;
-  }
-
-  // sadece yazılabilir tuşlar
-  if (e.key.length > 1 && e.key !== "Backspace") return;
-
-  if (finished) return;
-  if (!started) setStarted(true);
-
-  if (index >= TEXT.length) return;
-
-  const key = e.key;
-
-  // SPACE geçerli
-  if (key === " ") {
-    if (currentChar === " ") {
-      setCorrect((c) => c + 1);
-      playCorrect();
-    } else {
-      setWrong((w) => w + 1);
-      playWrong();
-      setWrongIndexes((prev) => {
-        const next = new Set(prev);
-        next.add(index);
-        return next;
-      });
+  function handleKey(e: KeyboardEvent) {
+    // 1. Tab tuşunun varsayılan odağını ve geçişini tamamen iptal et
+    if (e.key === "Tab") {
+      e.preventDefault();
+      e.stopPropagation(); // Olayın yukarı yayılmasını durdur
+      return;
     }
-    setIndex((i) => i + 1);
-    return;
-  }
 
-  // normal harfler
-  if (key.length === 1) {
+    // Alt, Control, Meta gibi sistem tuşlarını engelle
+    if (e.altKey || e.ctrlKey || e.metaKey) return;
+
+    // Sadece tek karakterler ve Backspace'e izin ver
+    if (e.key.length > 1 && e.key !== "Backspace") return;
+
+    if (finished) return;
+    if (!started) setStarted(true);
+    if (index >= TEXT.length) return;
+
+    const key = e.key;
+
     if (key === currentChar) {
       setCorrect((c) => c + 1);
       playCorrect();
@@ -98,67 +92,82 @@ export default function DashboardPage() {
         return next;
       });
     }
-
     setIndex((i) => i + 1);
   }
-}
 
+  window.addEventListener("keydown", handleKey);
+  return () => window.removeEventListener("keydown", handleKey);
+}, [index, currentChar, finished, started]);
 
-    window.addEventListener("keydown", handleKey);
-    return () => window.removeEventListener("keydown", handleKey);
-  }, [index, currentChar, finished, started]);
-
+  // Hesaplamalar
   const elapsed = TEST_TIME - time || 1;
   const wpm = Math.round((correct / 5) / (elapsed / 60));
   const accuracy = Math.round((correct / (correct + wrong || 1)) * 100);
 
-  function reset() {
+  const reset = () => {
     setTime(TEST_TIME); setStarted(false); setFinished(false);
     setIndex(0); setCorrect(0); setWrong(0);
-    setWrongIndexes(new Set()); savedRef.current = false;
-  }
-   const theme = useTheme()
+    setWrongIndexes(new Set());
+  };
 
   return (
-    <div className="min-h-screen transition-colors duration-500 font-sans">
-        <DotPattern
-        className={cn(
-          "[mask-image:radial-gradient(300px_circle_at_center,white,transparent)]"
-        )}
-      />
-      {/* Üst Alan: Skorlar */}
-     
-      <div className="max-w-4xl mx-auto pt-12 px-6">
-        <div className="flex  justify-between items-center mb-12  backdrop-blur-xl p-6 rounded-3xl border-primary-foreground border shadow-xl shadow-slate-200/50 dark:shadow-none">
-          <div className="flex bg-card gap-12">
-              <ShineBorder className="rotate-shine " shineColor={["#A07CFE", "#FE8FB5", "#FFBE7B"]} />
-            <Stat label="TIME" value={`${time}s`} color="text-blue-500" />
-            <Stat label="WPM" value={isNaN(wpm) ? 0 : wpm} color="text-emerald-500" />
-            <Stat label="ACCURACY" value={`%${accuracy}`} color="text-amber-500" />
-          </div>
-          <button onClick={reset} className="p-3 hover:rotate-180 transition-transform duration-500 text-slate-400">
-            🔄
+    <div className="relative min-h-screen flex flex-col items-center justify-center p-4 md:p-10 overflow-hidden font-sans">
+      <DotPattern className={cn("[mask-image:radial-gradient(400px_circle_at_center,white,transparent)]")} />
+
+      {/* 1. Zorluk Seçici (Top Bar) */}
+      <div className="z-20 mb-10 flex bg-card/40 backdrop-blur-md p-1.5 rounded-2xl border border-border shadow-sm">
+        {["easy", "medium", "hard", "ultra"].map((m) => (
+          <button
+            key={m}
+            onClick={() => { reset(); setMode(m as any); }}
+            className={cn(
+              "px-5 py-2.5 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all",
+              mode === m 
+                ? "bg-primary text-primary-foreground shadow-lg scale-105" 
+                : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
+            )}
+          >
+            {m}
+          </button>
+        ))}
+      </div>
+
+      <div className="w-full max-w-4xl z-10 space-y-6">
+        {/* 2. Stat Kartları */}
+        <div className="grid grid-cols-3 gap-4 bg-card/80 backdrop-blur-xl p-8 rounded-[2.5rem] border border-border shadow-2xl relative overflow-hidden">
+          <Stat icon={<Timer className="text-blue-500 w-4 h-4" />} label="Süre" value={`${time}s`} />
+          <Stat icon={<Zap className="text-emerald-500 w-4 h-4" />} label="Hız (WPM)" value={isNaN(wpm) ? 0 : wpm} />
+          <Stat icon={<Target className="text-amber-500 w-4 h-4" />} label="Doğruluk" value={`%${accuracy}`} />
+          
+          <button onClick={reset} className="absolute right-6 top-1/2 -translate-y-1/2 p-3 hover:bg-secondary rounded-full transition-all group">
+            <RefreshCcw className="w-5 h-5 text-muted-foreground group-hover:rotate-180 transition-transform duration-500" />
           </button>
         </div>
 
-        {/* Metin Alanı */}
-        <div className="relative mb-12 group bg-card p-6 rounded-3xl border-primary-foreground border shadow-xl shadow-slate-200/50 dark:shadow-none">
-          <ShineBorder shineColor={theme.theme === "dark" ? "white" : "black"} />
-          <div className="w-full p-10 rounded-[2rem] bshadow-inner text-2xl font-mono leading-relaxed tracking-wide min-h-[200px]">
-            <div className="flex flex-wrap gap-x-[0.25em]">
+        {/* 3. Metin Alanı (Boşluk Problemi Çözüldü) */}
+        <div className="relative bg-card/40 backdrop-blur-sm rounded-[3rem] border border-border shadow-2xl">
+          <ShineBorder shineColor={theme === "dark" ? "#ffffff" : "#000000"} />
+          <div className="p-10 md:p-14 text-2xl md:text-3xl font-mono leading-[1.7] tracking-tight max-h-[400px] overflow-y-auto custom-scrollbar">
+            <div className="flex flex-wrap items-center">
               {TEXT.split("").map((char, i) => {
-                let stateClass = "text-slate-900 dark:text-slate-600";
+                let stateClass = "text-muted-foreground/30";
                 if (i < index) {
-                  stateClass = wrongIndexes.has(i) 
-                    ? "text-red-500 border-b-2 border-red-500/50" 
-                    : "text-slate-800 dark:text-slate-100";
+                  stateClass = wrongIndexes.has(i) ? "text-red-500 underline decoration-2 offset-4" : "text-foreground font-medium";
                 }
-
+                
                 return (
-                  <span key={i} className={`relative transition-colors duration-150 ${stateClass}`}>
-                    {char === " " && wrongIndexes.has(i) ? "_" : char}
+                  <span 
+                    key={i} 
+                    className={cn(
+                      "relative transition-all duration-75",
+                      char === " " ? "inline-block w-[0.5em]" : "", // Boşluğa fiziksel genişlik
+                      stateClass,
+                      i === index && "bg-primary/20 rounded-md ring-2 ring-primary/20"
+                    )}
+                  >
+                    {char === " " && wrongIndexes.has(i) ? "•" : char}
                     {i === index && (
-                      <span className="absolute -bottom-1 left-0 w-full h-1 bg-emerald-500 animate-pulse rounded-full" />
+                      <span className="absolute -bottom-1 left-0 w-full h-1 bg-primary animate-pulse rounded-full" />
                     )}
                   </span>
                 );
@@ -166,34 +175,50 @@ export default function DashboardPage() {
             </div>
           </div>
         </div>
-
-        {/* Klavye (Ortalanmış) */}
-        <div className="flex justify-center opacity-80 hover:opacity-100 transition-opacity">
-          {/* <Keyboard expectedKey={currentChar} /> */}
-        </div>
       </div>
 
-      {/* Modern Sonuç Modalı */}
+      {/* 4. Başarı Modalı */}
       {finished && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-md animate-in fade-in duration-300">
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-10 rounded-[3rem] w-full max-w-lg shadow-2xl scale-in-center">
-            <h2 className="text-4xl font-black mb-8 bg-gradient-to-r from-emerald-500 to-blue-500 bg-clip-text text-transparent text-center">
-              Test Tamamlandı!
-            </h2>
-            
-            <div className="grid grid-cols-2 gap-4 mb-8">
-              <ResultCard label="Hız" value={wpm} unit="WPM" />
-              <ResultCard label="Doğruluk" value={accuracy} unit="%" />
-              <ResultCard label="Yanlış" value={wrong} unit="Adet" />
-              <ResultCard label="Süre" value={elapsed} unit="Sn" />
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-background/90 backdrop-blur-2xl p-4 animate-in fade-in duration-500">
+          <div className="bg-card border border-border p-10 rounded-[3.5rem] w-full max-w-lg shadow-[0_0_50px_-12px_rgba(0,0,0,0.5)] text-center space-y-8 animate-in zoom-in-95 duration-300">
+            <div className="flex justify-center">
+               <div className="bg-emerald-500/10 p-5 rounded-full ring-8 ring-emerald-500/5">
+                  <CheckCircle2 className="w-12 h-12 text-emerald-500" />
+               </div>
             </div>
 
-            <button
-              onClick={reset}
-              className="w-full bg-slate-900 dark:bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-5 rounded-2xl transition-all shadow-lg hover:shadow-emerald-500/20 active:scale-[0.98]"
-            >
-              Yeniden Başlat
-            </button>
+            <div className="space-y-2">
+              <h2 className="text-4xl font-black tracking-tight uppercase italic text-primary">Test Bitti!</h2>
+              <div className="inline-block px-4 py-1.5 bg-secondary rounded-full text-[10px] font-black tracking-[0.2em] text-muted-foreground">
+                TICKET NO: #0023-{mode.toUpperCase()}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+               <div className="bg-muted/40 p-6 rounded-[2rem] border border-border">
+                  <p className="text-[10px] font-bold text-muted-foreground uppercase mb-1">Hız</p>
+                  <p className="text-3xl font-black">{wpm} <span className="text-xs">WPM</span></p>
+               </div>
+               <div className="bg-muted/40 p-6 rounded-[2rem] border border-border">
+                  <p className="text-[10px] font-bold text-muted-foreground uppercase mb-1">Doğruluk</p>
+                  <p className="text-3xl font-black">%{accuracy}</p>
+               </div>
+            </div>
+
+            <div className="flex flex-col gap-3 pt-2">
+              <button 
+                onClick={reset}
+                className="w-full bg-primary text-primary-foreground font-black py-5 rounded-2xl hover:opacity-90 transition-all active:scale-95"
+              >
+                YENİDEN BAŞLAT
+              </button>
+              <button 
+                onClick={() => router.push("/dashboard/leaderboard")}
+                className="w-full bg-secondary text-foreground font-bold py-5 rounded-2xl hover:bg-secondary/80 transition-all flex items-center justify-center gap-2"
+              >
+                SIRALAMAYI GÖR <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -201,21 +226,15 @@ export default function DashboardPage() {
   );
 }
 
-// Yardımcı Alt Bileşenler
-function Stat({ label, value, color }: { label: string; value: any; color: string }) {
+// Yardımcı Bileşenler
+function Stat({ icon, label, value }: { icon: any, label: string; value: any }) {
   return (
-    <div className="flex flex-col">
-      <span className="text-[10px] font-black tracking-[0.2em] text-slate-400 uppercase">{label}</span>
-      <span className={`text-3xl font-mono font-bold ${color}`}>{value}</span>
-    </div>
-  );
-}
-
-function ResultCard({ label, value, unit }: { label: string; value: any; unit: string }) {
-  return (
-    <div className="bg-slate-50 dark:bg-slate-800/50 p-6 rounded-2xl text-center border border-slate-100 dark:border-slate-800">
-      <div className="text-slate-400 text-xs font-bold uppercase mb-1">{label}</div>
-      <div className="text-3xl font-black dark:text-white">{value}<span className="text-sm ml-1 text-slate-500 font-normal">{unit}</span></div>
+    <div className="flex flex-col items-center text-center">
+      <div className="flex items-center gap-2 mb-2">
+        {icon}
+        <span className="text-[10px] font-black tracking-widest text-muted-foreground uppercase">{label}</span>
+      </div>
+      <span className="text-4xl font-mono font-black tracking-tighter">{value}</span>
     </div>
   );
 }
