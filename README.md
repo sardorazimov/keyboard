@@ -3,7 +3,7 @@
       <img src=https://github.com/sardorazimov/keyboard/blob/main/public/assets/banner.png>
     </a>
         <a href="https://t.me/" target="_blank">
-      <img src=https://github.com/sardorazimov/keyboard/blob/main/public/assets1/banner.png>
+      <img src=https://github.com/sardorazimov/keyboard/blob/main/public/assets/banner1.png>
     </a>
   
   # ⌨️ KeyType
@@ -59,6 +59,6 @@ The project uses a clean API structure, meaning you can easily switch between:
 
 ### 1. Clone & Install
 ```bash
-git clone [https://github.com/yourusername/keytype.git](https://github.com/yourusername/keytype.git)
+git clone [https://github.com/sardorazimov/keytype.git](https://github.com/yourusername/keytype.git)
 cd keytype
 npm install
