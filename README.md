@@ -59,6 +59,6 @@ The project uses a clean API structure, meaning you can easily switch between:
 
 ### 1. Clone & Install
 ```bash
-git clone [https://github.com/sardorazimov/keytype.git](https://github.com/yourusername/keytype.git)
+git clone [https://github.com/sardorazimov/keytype.git](https://github.com/sardorazimov/keytype.git)
 cd keytype
 npm install

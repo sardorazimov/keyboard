@@ -1,6 +1,6 @@
 "use client";
 
-import { ShieldCheck, Lock, EyeOff, Database, XCircle, CheckCircle2,  } from "lucide-react";
+import { ShieldCheck, Lock, EyeOff, Database, XCircle, CheckCircle2, } from "lucide-react";
 import { LightRays } from "../../components/ui/light-rays";
 import { Footer } from "../../components/shared/footer";
 
@@ -19,9 +19,14 @@ export default function PrivacyPage() {
           Transparent, Minimal, and Secure. <br /> We care about your speed, not your identity.
         </p>
       </div>
+      <h1 className="text-2xl font-bold text-foreground/80 mb-12 text-center max-w-2xl mx-auto leading-relaxed">
+
+        The project is completely open source; you can access all the code on GitHub and do something similar on your own computer. Don&apos;t forget to give it a star rating for the Pull Request.
+
+      </h1>
 
       <div className="grid md:grid-cols-12 gap-8 items-start">
-        
+
         {/* SOL TARAF: ANA KARTLAR */}
         <div className="md:col-span-7 space-y-6">
           <div className="p-8 rounded-[2.5rem] border border-border bg-card/40 backdrop-blur-md shadow-2xl relative group overflow-hidden">
@@ -32,22 +37,22 @@ export default function PrivacyPage() {
               <h2 className="text-2xl font-black uppercase tracking-tight">Data Sovereignty</h2>
             </div>
             <p className="text-muted-foreground font-medium leading-relaxed">
-              At KeyType, we follow the principle of <span className="text-foreground font-bold">Data Minimization</span>. 
-              We only store what&lsquo;s necessary for the leaderboard. Your typing flow is processed 
+              At KeyType, we follow the principle of <span className="text-foreground font-bold">Data Minimization</span>.
+              We only store what&lsquo;s necessary for the leaderboard. Your typing flow is processed
               entirely in your browser memory and is never recorded or streamed to any server.
             </p>
           </div>
 
           <div className="grid grid-cols-2 gap-6">
             <div className="p-6 rounded-[2rem] border border-border bg-card/40 backdrop-blur-sm">
-                <EyeOff className="w-8 h-8 text-primary mb-4" />
-                <h3 className="font-black uppercase text-sm mb-2">No Tracking</h3>
-                <p className="text-xs text-muted-foreground font-bold leading-relaxed"> No Facebook Pixels, No hidden cookies.</p>
+              <EyeOff className="w-8 h-8 text-primary mb-4" />
+              <h3 className="font-black uppercase text-sm mb-2">No Tracking</h3>
+              <p className="text-xs text-muted-foreground font-bold leading-relaxed"> No Facebook Pixels, No hidden cookies.</p>
             </div>
             <div className="p-6 rounded-[2rem] border border-border bg-card/40 backdrop-blur-sm">
-                <ShieldCheck className="w-8 h-8 text-primary mb-4" />
-                <h3 className="font-black uppercase text-sm mb-2">Secure Storage</h3>
-                <p className="text-xs text-muted-foreground font-bold leading-relaxed">SSL encrypted database connections and secure servers.</p>
+              <ShieldCheck className="w-8 h-8 text-primary mb-4" />
+              <h3 className="font-black uppercase text-sm mb-2">Secure Storage</h3>
+              <p className="text-xs text-muted-foreground font-bold leading-relaxed">SSL encrypted database connections and secure servers.</p>
             </div>
           </div>
         </div>
@@ -83,9 +88,9 @@ export default function PrivacyPage() {
               When you submit a score, the following becomes public:
             </p>
             <div className="flex flex-wrap gap-2">
-                {["Username", "Country", "Score", "WPM"].map(tag => (
-                    <span key={tag} className="px-3 py-1 rounded-full bg-muted border border-border text-[10px] font-black uppercase tracking-widest">{tag}</span>
-                ))}
+              {["Username", "Country", "Score", "WPM"].map(tag => (
+                <span key={tag} className="px-3 py-1 rounded-full bg-muted border border-border text-[10px] font-black uppercase tracking-widest">{tag}</span>
+              ))}
             </div>
           </div>
         </div>

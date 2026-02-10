@@ -2,19 +2,23 @@
 import { db } from "@/lib/db";
 import { scores, users } from "@/lib/db/schema";
 import { eq, desc, avg, max } from "drizzle-orm";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server"; // NextRequest ekledik
 
-export async function GET(req: Request, { params }: { params: { username: string } }) {
-    const { username } = params;
+// Params'ı Promise olarak tanımlıyoruz (Next.js 15+ standardı)
+export async function GET(
+    req: NextRequest, 
+    { params }: { params: Promise<{ username: string }> } 
+) {
+    // KRİTİK NOKTA: params'ı önce await ediyoruz
+    const resolvedParams = await params;
+    const username = resolvedParams.username;
 
     try {
-        // 1. Kullanıcıyı bul
         const userResult = await db.select().from(users).where(eq(users.username, username)).limit(1);
         const user = userResult[0];
 
         if (!user) return NextResponse.json({ error: "User not found" }, { status: 404 });
 
-        // 2. Son 10 oyun (Grafik için)
         const history = await db
             .select({ score: scores.score, createdAt: scores.createdAt })
             .from(scores)
@@ -22,7 +26,6 @@ export async function GET(req: Request, { params }: { params: { username: string
             .orderBy(desc(scores.createdAt))
             .limit(10);
 
-        // 3. Genel İstatistikler
         const statsResult = await db
             .select({
                 avgWpm: avg(scores.wpm),
@@ -32,7 +35,7 @@ export async function GET(req: Request, { params }: { params: { username: string
             .where(eq(scores.userId, user.id));
 
         return NextResponse.json({
-            history: history.reverse(), // Zaman akışı için çevir
+            history: history.reverse(),
             stats: statsResult[0]
         });
     } catch (err: any) {
