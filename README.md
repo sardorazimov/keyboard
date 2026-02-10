@@ -1,9 +1,9 @@
 <div align="center">
       <a href="https://t.me/" target="_blank">
-      <img src=https://github.com/sardorazimov/keyboard/blob/main/assets/banner.png?raw=true alt="Project Banner">
+      <img src=https://github.com/sardorazimov/keyboard/blob/main/public/assets/banner.png>
     </a>
         <a href="https://t.me/" target="_blank">
-      <img src=https://github.com/sardorazimov/keyboard/blob/main/assets/banner.png?raw=true alt="Project Banner">
+      <img src=https://github.com/sardorazimov/keyboard/blob/main/public/assets1/banner.png>
     </a>
   
   # ⌨️ KeyType
